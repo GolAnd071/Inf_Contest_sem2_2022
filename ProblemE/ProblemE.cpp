@@ -2,6 +2,7 @@
 //
 
 #include <iostream>
+#include <algorithm>
 
 uint32_t get_results(uint32_t channel)
 {
@@ -24,16 +25,41 @@ uint32_t get_results(uint32_t channel)
 
 void detect()
 {
-    unsigned l = 0, r = 359;
-    while (r - l > 2) {
-        unsigned m1 = l + (r - l) / 3, m2 = r - (r - l) / 3;
-        uint32_t res1 = get_results(m1), res2 = get_results(m2);
-        if (res1 < res2)
-            l = m1;
-        else
-            r = m2;
+    uint32_t a[360];
+    const uint32_t bad_val = static_cast<uint32_t>(-1);
+    for (size_t i = 0; i < 360; ++i)
+        a[i] = bad_val;
+    size_t l = 0, r = 359, m = l + (r - l) / 2;
+    uint32_t f0 = (a[0] == bad_val ? get_results(0) : a[0]);
+    a[0] = f0;
+    uint32_t fm = (a[m] == bad_val ? get_results(m) : a[m]);
+    a[m] = fm;
+    while (r - l > 1) {
+        m = l + (r - l) / 2;
+        fm = (a[m] == bad_val ? get_results(m) : a[m]);
+        a[m] = fm;
+        if (fm < f0)
+            l = m;
+        else {
+            size_t m1 = m - 1;
+            uint32_t fm1 = (a[m1] == bad_val ? get_results(m1) : a[m1]);
+            a[m1] = fm1;
+            if (fm > fm1)
+                l = m;
+            else
+                r = m1;
+        }
     }
-    std::cout << l << ' ' << get_results(l) << '\n';
+    uint32_t fl = (a[l] == bad_val ? get_results(l) : a[l]);
+    a[l] = fl;
+    uint32_t fr = (a[r] == bad_val ? get_results(r) : a[r]);
+    a[r] = fr;
+    if (fl > fm && fl > fr)
+        std::cout << l << ' ' << fl << '\n';
+    else if (fm > fl && fm > fr)
+        std::cout << m << ' ' << fm << '\n';
+    else
+        std::cout << r << ' ' << fr << '\n';
 }
 
 int main() {

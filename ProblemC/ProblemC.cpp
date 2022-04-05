@@ -10,6 +10,12 @@ int* compress(int** matrix, int n, int m);
 
 int* compress(int** matrix, int n, int m)
 {
+    if (n * m == 0) {
+        for (int i = 0; i < n; ++i)
+            delete[] matrix[i];
+        delete[] matrix;
+        return nullptr;
+    }
     int* ans = new int[3 * n];
     int counter = 0;
     for (unsigned i = 0; i < n; ++i) {
@@ -18,6 +24,8 @@ int* compress(int** matrix, int n, int m)
             if (matrix[i][j] != 0) {
                 ++non_zeros;
                 if (non_zeros > 3) {
+                    for (int i = 0; i < n; ++i)
+                        delete[] matrix[i];
                     delete[] matrix;
                     delete[] ans;
                     return nullptr;
@@ -25,7 +33,16 @@ int* compress(int** matrix, int n, int m)
                 ans[counter] = matrix[i][j];
                 ++counter;
             }
+        if (non_zeros < 3) {
+            for (int i = 0; i < n; ++i)
+                delete[] matrix[i];
+            delete[] matrix;
+            delete[] ans;
+            return nullptr;
+        }
     }
+    for (int i = 0; i < n; ++i)
+        delete[] matrix[i];
     delete[] matrix;
     return ans;
 }
