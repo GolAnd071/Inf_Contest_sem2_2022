@@ -23,43 +23,55 @@ uint32_t get_results(uint32_t channel)
     return static_cast<uint32_t>(-1);
 }
 
+// If we have increasing segment first, reverse input of the function
+uint32_t getRes(uint32_t ch, uint32_t arr[], bool rev = false)
+{
+    uint32_t bad_val = static_cast<uint32_t>(-1);
+    uint32_t f = (arr[ch] == bad_val ? get_results(rev ? 359 - ch : ch) : arr[ch]);
+    arr[ch] = f;
+    return f;
+}
+
 void detect()
 {
+    // Memoization
     uint32_t a[360];
     const uint32_t bad_val = static_cast<uint32_t>(-1);
     for (size_t i = 0; i < 360; ++i)
         a[i] = bad_val;
     size_t l = 0, r = 359, m = l + (r - l) / 2;
-    uint32_t f0 = (a[0] == bad_val ? get_results(0) : a[0]);
-    a[0] = f0;
-    uint32_t fm = (a[m] == bad_val ? get_results(m) : a[m]);
-    a[m] = fm;
+    uint32_t f0 = getRes(0, a);
+    uint32_t f359 = getRes(359, a);
+    // Determine function type
+    bool rev = false;
+    if (f359 < f0)
+        rev = true;
+    f0 = getRes(0, a, rev);
+    f359 = getRes(359, a, rev);
+    uint32_t fm = getRes(m, a, rev);
+    // Binary search
     while (r - l > 1) {
         m = l + (r - l) / 2;
-        fm = (a[m] == bad_val ? get_results(m) : a[m]);
-        a[m] = fm;
+        fm = getRes(m, a, rev);
         if (fm < f0)
             l = m;
         else {
             size_t m1 = m - 1;
-            uint32_t fm1 = (a[m1] == bad_val ? get_results(m1) : a[m1]);
-            a[m1] = fm1;
+            uint32_t fm1 = getRes(m1, a, rev);
             if (fm > fm1)
                 l = m;
             else
                 r = m1;
         }
     }
-    uint32_t fl = (a[l] == bad_val ? get_results(l) : a[l]);
-    a[l] = fl;
-    uint32_t fr = (a[r] == bad_val ? get_results(r) : a[r]);
-    a[r] = fr;
-    if (fl > fm && fl > fr)
-        std::cout << l << ' ' << fl << '\n';
-    else if (fm > fl && fm > fr)
-        std::cout << m << ' ' << fm << '\n';
+    uint32_t fl = getRes(l, a, rev);
+    uint32_t fr = getRes(r, a, rev);
+    if (fl >= fm && fl >= fr)
+        std::cout << fl << ' ' << (rev ? 359 - l : l) << '\n';
+    else if (fm >= fl && fm >= fr)
+        std::cout << fm << ' ' << (rev ? 359 - m : m) << '\n';
     else
-        std::cout << r << ' ' << fr << '\n';
+        std::cout << fr << ' ' << (rev ? 359 - r : r) << '\n';
 }
 
 int main() {
